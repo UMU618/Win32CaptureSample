@@ -9,6 +9,33 @@
     <ClCompile Include="CaptureSnapshot.cpp" />
     <ClCompile Include="WindowList.cpp" />
     <ClCompile Include="MonitorList.cpp" />
+    <ClCompile Include="..\deps\DirectXTex\DirectXTex\DirectXTexDDS.cpp">
+      <Filter>DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\DirectXTex\DirectXTex\DirectXTexUtil.cpp">
+      <Filter>DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\DirectXTex\DirectXTex\DirectXTexConvert.cpp">
+      <Filter>DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\DirectXTex\DirectXTex\DirectXTexImage.cpp">
+      <Filter>DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\DirectXTex\DirectXTex\DirectXTexCompress.cpp">
+      <Filter>DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\DirectXTex\DirectXTex\DirectXTexMipmaps.cpp">
+      <Filter>DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\DirectXTex\DirectXTex\BC.cpp">
+      <Filter>DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\DirectXTex\DirectXTex\BC4BC5.cpp">
+      <Filter>DirectXTex</Filter>
+    </ClCompile>
+    <ClCompile Include="..\deps\DirectXTex\DirectXTex\BC6HBC7.cpp">
+      <Filter>DirectXTex</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -18,11 +45,28 @@
     <ClInclude Include="CaptureSnapshot.h" />
     <ClInclude Include="WindowList.h" />
     <ClInclude Include="MonitorList.h" />
+    <ClInclude Include="..\deps\DirectXTex\DirectXTex\DDS.h">
+      <Filter>DirectXTex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\DirectXTex\DirectXTex\DirectXTex.h">
+      <Filter>DirectXTex</Filter>
+    </ClInclude>
+    <ClInclude Include="..\deps\DirectXTex\DirectXTex\BC.h">
+      <Filter>DirectXTex</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="..\deps\DirectXTex\DirectXTex\DirectXTex.inl">
+      <Filter>DirectXTex</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="$(MSBuildThisFileDirectory)..\..\natvis\wil.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="DirectXTex">
+      <UniqueIdentifier>{415f6173-6417-4b97-bcad-80fec33d1e08}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

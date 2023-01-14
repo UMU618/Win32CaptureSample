@@ -146,6 +146,12 @@ LRESULT SampleWindow::MessageHandler(UINT const message, WPARAM const wparam, LP
                     auto value = SendMessageW(m_borderRequiredCheckBoxHwnd, BM_GETCHECK, 0, 0) == BST_CHECKED;
                     m_app->IsBorderRequired(value);
                 }
+                // UMU Add
+                else if (hwnd == m_autoSaveCheckBox)
+                {
+                    auto value = SendMessageW(m_autoSaveCheckBox, BM_GETCHECK, 0, 0) == BST_CHECKED;
+                    m_app->IsAutoSave(value);
+                }
             }
             break;
         }
@@ -185,6 +191,8 @@ void SampleWindow::OnCaptureStarted(winrt::GraphicsCaptureItem const& item, Capt
     SendMessageW(m_borderRequiredCheckBoxHwnd, BM_SETCHECK, BST_CHECKED, 0);
     EnableWindow(m_stopButton, true);
     EnableWindow(m_snapshotButton, true);
+    // UMU Add
+    EnableWindow(m_autoSaveCheckBox, TRUE);
 }
 
 winrt::fire_and_forget SampleWindow::OnPickerButtonClicked()
@@ -287,6 +295,10 @@ void SampleWindow::CreateControls(HINSTANCE instance)
     // The default state is false for border required checkbox
     SendMessageW(borderRequiredCheckBoxHwnd, BM_SETCHECK, BST_CHECKED, 0);
 
+    // UMU Add
+    HWND autoSaveCheckBox = controls.CreateControl(util::ControlType::CheckBox, L"Auto save to file", WS_DISABLED);
+    SendMessageW(autoSaveCheckBox, BM_SETCHECK, BST_UNCHECKED, 0);
+
     m_windowComboBox = windowComboBox;
     m_monitorComboBox = monitorComboBox;
     m_pickerButton = pickerButton;
@@ -296,6 +308,8 @@ void SampleWindow::CreateControls(HINSTANCE instance)
     m_captureExcludeCheckBox = captureExcludeCheckBox;
     m_pixelFormatComboBox = pixelFormatComboBox;
     m_borderRequiredCheckBoxHwnd = borderRequiredCheckBoxHwnd;
+    // UMU Add
+    m_autoSaveCheckBox = autoSaveCheckBox;
 }
 
 void SampleWindow::SetSubTitle(std::wstring const& text)
@@ -318,6 +332,8 @@ void SampleWindow::StopCapture()
     SendMessageW(m_borderRequiredCheckBoxHwnd, BM_SETCHECK, BST_CHECKED, 0);
     EnableWindow(m_stopButton, false);
     EnableWindow(m_snapshotButton, false);
+    // UMU Add
+    EnableWindow(m_autoSaveCheckBox, FALSE);
 }
 
 void SampleWindow::OnCaptureItemClosed(winrt::GraphicsCaptureItem const&, winrt::Windows::Foundation::IInspectable const&)

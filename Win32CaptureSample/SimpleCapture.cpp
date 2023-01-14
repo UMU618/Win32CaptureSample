@@ -1,6 +1,13 @@
 #include "pch.h"
 #include "SimpleCapture.h"
 
+// UMU Add {
+#include <DirectXTex.h>
+#include <ShlObj.h>
+
+using namespace std::literals::chrono_literals;
+// UMU Add }
+
 namespace winrt
 {
     using namespace Windows::Foundation;
@@ -19,8 +26,32 @@ namespace util
     using namespace robmikh::common::uwp;
 }
 
+// UMU Add {
+namespace
+{
+std::wstring GetKnownFolderPath(REFKNOWNFOLDERID folder_id) noexcept
+{
+    std::wstring dir;
+    PWSTR path = nullptr;
+    HRESULT hr = SHGetKnownFolderPath(folder_id, KF_FLAG_CREATE, nullptr, &path);
+    if (SUCCEEDED(hr))
+    {
+        dir = path;
+    }
+    if (nullptr != path)
+    {
+        CoTaskMemFree(path);
+    }
+    return dir;
+}
+} // namespace
+// UMU Add }
+
 SimpleCapture::SimpleCapture(winrt::IDirect3DDevice const& device, winrt::GraphicsCaptureItem const& item, winrt::DirectXPixelFormat pixelFormat)
 {
+    // UMU Add
+    save_directory_ = std::filesystem::path{GetKnownFolderPath(FOLDERID_Pictures)} / L"Win32CaptureSample";
+
     m_item = item;
     m_device = device;
     m_pixelFormat = pixelFormat;
@@ -105,6 +136,53 @@ bool SimpleCapture::TryUpdatePixelFormat()
     return false;
 }
 
+// UMU Add
+void SimpleCapture::EnsureSaveDirectory()
+{
+    std::filesystem::create_directory(save_directory_);
+}
+
+HRESULT SimpleCapture::AutoSaveToDDSFile(const winrt::com_ptr<ID3D11Texture2D>& texture)
+{
+    const auto now = std::chrono::steady_clock::now();
+    if (now - started_ < 1s)
+    {
+        return S_FALSE;
+    }
+    started_ = now;
+
+    winrt::com_ptr<ID3D11Device> device;
+    texture->GetDevice(device.put());
+    winrt::com_ptr<ID3D11DeviceContext> context;
+    device->GetImmediateContext(context.put());
+    auto stagingTexture = util::PrepareStagingTexture(device, texture);
+    D3D11_TEXTURE2D_DESC desc = {};
+    stagingTexture->GetDesc(&desc);
+    auto bytesPerPixel = util::GetBytesPerPixel(desc.Format);
+    // Copy the bits
+    D3D11_MAPPED_SUBRESOURCE mapped = {};
+    winrt::check_hresult(context->Map(stagingTexture.get(), 0, D3D11_MAP_READ, 0, &mapped));
+    auto bytesStride = static_cast<size_t>(desc.Width) * bytesPerPixel;
+    std::vector<byte> bytes(bytesStride * static_cast<size_t>(desc.Height), 0);
+    auto source = reinterpret_cast<byte*>(mapped.pData);
+    auto dest = bytes.data();
+    for (auto i = 0; i < (int)desc.Height; i++)
+    {
+        memcpy(dest, source, bytesStride);
+        source += mapped.RowPitch;
+        dest += bytesStride;
+    }
+    context->Unmap(stagingTexture.get(), 0);
+    DirectX::Image image{.width = desc.Width,
+                         .height = desc.Height,
+                         .format = desc.Format,
+                         .rowPitch = mapped.RowPitch,
+                         .slicePitch = bytes.size(),
+                         .pixels = bytes.data()};
+    auto filename = std::format(L"{}.dds", now.time_since_epoch().count());
+    return DirectX::SaveToDDSFile(image, DirectX::DDS_FLAGS::DDS_FLAGS_NONE, (save_directory_ / filename).c_str());
+}
+
 void SimpleCapture::OnFrameArrived(winrt::Direct3D11CaptureFramePool const& sender, winrt::IInspectable const&)
 {
     auto swapChainResizedToFrame = false;
@@ -118,6 +196,12 @@ void SimpleCapture::OnFrameArrived(winrt::Direct3D11CaptureFramePool const& send
         auto surfaceTexture = GetDXGIInterfaceFromObject<ID3D11Texture2D>(frame.Surface());
         // copy surfaceTexture to backBuffer
         m_d3dContext->CopyResource(backBuffer.get(), surfaceTexture.get());
+
+        // UMU Add
+        if (auto_save_)
+        {
+            AutoSaveToDDSFile(surfaceTexture);
+        }
     }
 
     DXGI_PRESENT_PARAMETERS presentParameters{};

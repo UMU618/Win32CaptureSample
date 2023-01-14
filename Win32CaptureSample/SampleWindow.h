@@ -54,4 +54,7 @@ private:
     std::vector<PixelFormatData> m_pixelFormats;
     std::shared_ptr<App> m_app;
     winrt::Windows::Graphics::Capture::GraphicsCaptureItem::Closed_revoker m_itemClosedRevoker;
+
+    // UMU Add
+    HWND m_autoSaveCheckBox = nullptr;
 };

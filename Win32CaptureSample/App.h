@@ -23,6 +23,15 @@ public:
 
     void StopCapture();
 
+     // UMU Add
+    void IsAutoSave(bool auto_save)
+    {
+        if (m_capture != nullptr)
+        {
+            m_capture->IsAutoSave(auto_save);
+        }
+    }
+
 private:
     void StartCaptureFromItem(winrt::Windows::Graphics::Capture::GraphicsCaptureItem item);
 

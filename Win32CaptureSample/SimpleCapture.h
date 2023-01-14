@@ -1,5 +1,8 @@
 #pragma once
 
+// UMU Add
+#include <filesystem>
+
 class SimpleCapture
 {
 public:
@@ -14,7 +17,7 @@ public:
         winrt::Windows::UI::Composition::Compositor const& compositor);
 
     bool IsCursorEnabled() { CheckClosed(); return m_session.IsCursorCaptureEnabled(); }
-	void IsCursorEnabled(bool value) { CheckClosed(); m_session.IsCursorCaptureEnabled(value); }
+    void IsCursorEnabled(bool value) { CheckClosed(); m_session.IsCursorCaptureEnabled(value); }
     bool IsBorderRequired() { CheckClosed(); return m_session.IsBorderRequired(); }
     void IsBorderRequired(bool value) { CheckClosed(); m_session.IsBorderRequired(value); }
     winrt::Windows::Graphics::Capture::GraphicsCaptureItem CaptureItem() { return m_item; }
@@ -27,6 +30,23 @@ public:
     }
 
     void Close();
+
+    // UMU Add
+    bool IsAutoSave()
+    {
+        CheckClosed();
+        return auto_save_;
+    }
+    void IsAutoSave(bool auto_save)
+    {
+        CheckClosed();
+        auto_save_ = auto_save;
+        if (auto_save)
+        {
+            EnsureSaveDirectory();
+            started_ = std::chrono::steady_clock::now();
+        }
+    }
 
 private:
     void OnFrameArrived(
@@ -45,6 +65,10 @@ private:
     bool TryResizeSwapChain(winrt::Windows::Graphics::Capture::Direct3D11CaptureFrame const& frame);
     bool TryUpdatePixelFormat();
 
+    // UMU Add
+    void EnsureSaveDirectory();
+    HRESULT AutoSaveToDDSFile(const winrt::com_ptr<ID3D11Texture2D>& texture);
+
 private:
     winrt::Windows::Graphics::Capture::GraphicsCaptureItem m_item{ nullptr };
     winrt::Windows::Graphics::Capture::Direct3D11CaptureFramePool m_framePool{ nullptr };
@@ -60,4 +84,9 @@ private:
 
     std::atomic<bool> m_closed = false;
     std::atomic<bool> m_captureNextImage = false;
+
+    // UMU Add
+    bool auto_save_{false};
+    std::filesystem::path save_directory_;
+    std::chrono::steady_clock::time_point started_;
 };

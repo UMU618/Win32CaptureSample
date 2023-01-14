@@ -1,0 +1,33 @@
+# Defines the Chromium style for automatic reformatting.
+# http://clang.llvm.org/docs/ClangFormatStyleOptions.html
+Language: Cpp
+BasedOnStyle: Microsoft
+
+IndentWidth: 4
+
+IndentRequires: true
+
+AccessModifierOffset: -4
+
+PointerAlignment: Left
+
+AllowShortFunctionsOnASingleLine: Inline
+
+EmptyLineBeforeAccessModifier: Always
+
+AllowShortEnumsOnASingleLine: true
+
+#clang-format14
+#ShortNamespaceLines:0
+
+#BreakBeforeBraces: Allman
+BraceWrapping:
+    AfterEnum: true
+    AfterFunction: true
+    AfterNamespace: true
+    AfterCaseLabel: true
+    AfterExternBlock: true
+    BeforeElse: true
+    AfterControlStatement: true
+
+BreakConstructorInitializers: BeforeComma
