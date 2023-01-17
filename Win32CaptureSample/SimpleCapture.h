@@ -32,17 +32,34 @@ public:
     void Close();
 
     // UMU Add
-    bool IsAutoSave()
+    bool IsAutoSaveDds()
     {
         CheckClosed();
-        return auto_save_;
+        return auto_save_dds_;
     }
-    void IsAutoSave(bool auto_save)
+    void IsAutoSaveDds(bool auto_save)
     {
         CheckClosed();
-        auto_save_ = auto_save;
+        auto_save_dds_ = auto_save;
         if (auto_save)
         {
+            save_rgba_ = false;
+            EnsureSaveDirectory();
+            started_ = std::chrono::steady_clock::now();
+        }
+    }
+    bool IsSaveRgba()
+    {
+        CheckClosed();
+        return save_rgba_;
+    }
+    void IsSaveRgba(bool save)
+    {
+        CheckClosed();
+        save_rgba_ = save;
+        if (save)
+        {
+            auto_save_dds_ = false;
             EnsureSaveDirectory();
             started_ = std::chrono::steady_clock::now();
         }
@@ -68,6 +85,7 @@ private:
     // UMU Add
     void EnsureSaveDirectory();
     HRESULT AutoSaveToDDSFile(const winrt::com_ptr<ID3D11Texture2D>& texture);
+    HRESULT SaveToRgbaFile(const winrt::com_ptr<ID3D11Texture2D>& texture);
 
 private:
     winrt::Windows::Graphics::Capture::GraphicsCaptureItem m_item{ nullptr };
@@ -86,7 +104,9 @@ private:
     std::atomic<bool> m_captureNextImage = false;
 
     // UMU Add
-    bool auto_save_{false};
+    bool auto_save_dds_{false};
+    bool save_rgba_{false};
     std::filesystem::path save_directory_;
     std::chrono::steady_clock::time_point started_;
+    wil::unique_hfile rgba_file_;
 };

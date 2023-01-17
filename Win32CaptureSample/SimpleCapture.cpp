@@ -183,6 +183,60 @@ HRESULT SimpleCapture::AutoSaveToDDSFile(const winrt::com_ptr<ID3D11Texture2D>& 
     return DirectX::SaveToDDSFile(image, DirectX::DDS_FLAGS::DDS_FLAGS_NONE, (save_directory_ / filename).c_str());
 }
 
+HRESULT SimpleCapture::SaveToRgbaFile(const winrt::com_ptr<ID3D11Texture2D>& texture)
+{
+    if (!rgba_file_)
+    {
+        auto filename = std::format(L"{}.rgba", started_.time_since_epoch().count());
+        rgba_file_.reset(CreateFile((save_directory_ / filename).c_str(), FILE_GENERIC_WRITE, FILE_SHARE_READ, nullptr,
+                                    CREATE_NEW, 0, nullptr));
+        if (!rgba_file_)
+        {
+            save_rgba_ = false;
+            return HRESULT_FROM_WIN32(GetLastError());
+        }
+    }
+
+    const auto now = std::chrono::steady_clock::now();
+    if (now - started_ >= 2min)
+    {
+        save_rgba_ = false;
+        rgba_file_.reset();
+        return S_OK;
+    }
+
+    winrt::com_ptr<ID3D11Device> device;
+    texture->GetDevice(device.put());
+    winrt::com_ptr<ID3D11DeviceContext> context;
+    device->GetImmediateContext(context.put());
+    auto stagingTexture = util::PrepareStagingTexture(device, texture);
+    D3D11_TEXTURE2D_DESC desc = {};
+    stagingTexture->GetDesc(&desc);
+    auto bytesPerPixel = util::GetBytesPerPixel(desc.Format);
+    // Copy the bits
+    D3D11_MAPPED_SUBRESOURCE mapped = {};
+    winrt::check_hresult(context->Map(stagingTexture.get(), 0, D3D11_MAP_READ, 0, &mapped));
+    auto bytesStride = static_cast<size_t>(desc.Width) * bytesPerPixel;
+    std::vector<byte> bytes(bytesStride * static_cast<size_t>(desc.Height), 0);
+    auto source = reinterpret_cast<byte*>(mapped.pData);
+    auto dest = bytes.data();
+    for (auto i = 0; i < (int)desc.Height; i++)
+    {
+        memcpy(dest, source, bytesStride);
+        source += mapped.RowPitch;
+        dest += bytesStride;
+    }
+    context->Unmap(stagingTexture.get(), 0);
+    DWORD written = 0;
+    if (!WriteFile(rgba_file_.get(), bytes.data(), bytes.size(), &written, nullptr))
+    {
+        save_rgba_ = false;
+        rgba_file_.reset();
+        return HRESULT_FROM_WIN32(GetLastError());
+    }
+    return S_OK;
+}
+
 void SimpleCapture::OnFrameArrived(winrt::Direct3D11CaptureFramePool const& sender, winrt::IInspectable const&)
 {
     auto swapChainResizedToFrame = false;
@@ -198,9 +252,13 @@ void SimpleCapture::OnFrameArrived(winrt::Direct3D11CaptureFramePool const& send
         m_d3dContext->CopyResource(backBuffer.get(), surfaceTexture.get());
 
         // UMU Add
-        if (auto_save_)
+        if (auto_save_dds_)
         {
             AutoSaveToDDSFile(surfaceTexture);
+        }
+        else if (save_rgba_)
+        {
+            SaveToRgbaFile(surfaceTexture);
         }
     }
 

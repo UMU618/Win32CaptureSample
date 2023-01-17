@@ -57,4 +57,5 @@ private:
 
     // UMU Add
     HWND m_autoSaveCheckBox = nullptr;
+    HWND m_saveRgbaCheckBox = nullptr;
 };

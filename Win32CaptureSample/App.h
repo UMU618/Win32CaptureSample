@@ -24,11 +24,18 @@ public:
     void StopCapture();
 
      // UMU Add
-    void IsAutoSave(bool auto_save)
+    void IsAutoSaveDds(bool auto_save)
     {
         if (m_capture != nullptr)
         {
-            m_capture->IsAutoSave(auto_save);
+            m_capture->IsAutoSaveDds(auto_save);
+        }
+    }
+    void IsSaveRgba(bool save)
+    {
+        if (m_capture != nullptr)
+        {
+            m_capture->IsSaveRgba(save);
         }
     }
 

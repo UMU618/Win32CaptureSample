@@ -149,8 +149,17 @@ LRESULT SampleWindow::MessageHandler(UINT const message, WPARAM const wparam, LP
                 // UMU Add
                 else if (hwnd == m_autoSaveCheckBox)
                 {
+                    SendMessageW(m_saveRgbaCheckBox, BM_SETCHECK, BST_UNCHECKED, 0);
+
                     auto value = SendMessageW(m_autoSaveCheckBox, BM_GETCHECK, 0, 0) == BST_CHECKED;
-                    m_app->IsAutoSave(value);
+                    m_app->IsAutoSaveDds(value);
+                }
+                else if (hwnd == m_saveRgbaCheckBox)
+                {
+                    SendMessageW(m_autoSaveCheckBox, BM_SETCHECK, BST_UNCHECKED, 0);
+
+                    auto value = SendMessageW(m_saveRgbaCheckBox, BM_GETCHECK, 0, 0) == BST_CHECKED;
+                    m_app->IsSaveRgba(value);
                 }
             }
             break;
@@ -193,6 +202,7 @@ void SampleWindow::OnCaptureStarted(winrt::GraphicsCaptureItem const& item, Capt
     EnableWindow(m_snapshotButton, true);
     // UMU Add
     EnableWindow(m_autoSaveCheckBox, TRUE);
+    EnableWindow(m_saveRgbaCheckBox, TRUE);
 }
 
 winrt::fire_and_forget SampleWindow::OnPickerButtonClicked()
@@ -298,6 +308,8 @@ void SampleWindow::CreateControls(HINSTANCE instance)
     // UMU Add
     HWND autoSaveCheckBox = controls.CreateControl(util::ControlType::CheckBox, L"Auto save to file", WS_DISABLED);
     SendMessageW(autoSaveCheckBox, BM_SETCHECK, BST_UNCHECKED, 0);
+    HWND saveRgbaCheckBox = controls.CreateControl(util::ControlType::CheckBox, L"Save stream to RGBA file", WS_DISABLED);
+    SendMessageW(saveRgbaCheckBox, BM_SETCHECK, BST_UNCHECKED, 0);
 
     m_windowComboBox = windowComboBox;
     m_monitorComboBox = monitorComboBox;
@@ -310,6 +322,7 @@ void SampleWindow::CreateControls(HINSTANCE instance)
     m_borderRequiredCheckBoxHwnd = borderRequiredCheckBoxHwnd;
     // UMU Add
     m_autoSaveCheckBox = autoSaveCheckBox;
+    m_saveRgbaCheckBox = saveRgbaCheckBox;
 }
 
 void SampleWindow::SetSubTitle(std::wstring const& text)
@@ -334,6 +347,7 @@ void SampleWindow::StopCapture()
     EnableWindow(m_snapshotButton, false);
     // UMU Add
     EnableWindow(m_autoSaveCheckBox, FALSE);
+    EnableWindow(m_saveRgbaCheckBox, FALSE);
 }
 
 void SampleWindow::OnCaptureItemClosed(winrt::GraphicsCaptureItem const&, winrt::Windows::Foundation::IInspectable const&)
